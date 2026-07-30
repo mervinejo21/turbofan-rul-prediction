@@ -1,0 +1,23 @@
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# Data
+data/
+
+# Generated plots
+plots/
+
+# IDE / OS
+.vscode/
+.DS_Store
+
+# Env vars
+.env
