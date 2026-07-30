@@ -12,8 +12,6 @@ __pycache__/
 # Data
 data/
 
-# Generated plots
-plots/
 
 # IDE / OS
 .vscode/
