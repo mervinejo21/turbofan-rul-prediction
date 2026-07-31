@@ -12,40 +12,14 @@ Setup instructions:
 
 import os
 
-import pandas as pd
 import matplotlib.pyplot as plt
+import utils
 
 DATA_PATH = "../data/train_FD001.txt"
 PLOTS_DIR = "../plots"
 
-# The raw files have no headers. Columns are:
-# engine_id, cycle, op_setting_1, op_setting_2, op_setting_3, sensor_1 ... sensor_21
-COLUMN_NAMES = (
-    ["engine_id", "cycle", "op_setting_1", "op_setting_2", "op_setting_3"]
-    + [f"sensor_{i}" for i in range(1, 22)]
-)
 
-
-def load_data(path: str) -> pd.DataFrame:
-    """Load a C-MAPSS train/test file into a clean DataFrame."""
-    df = pd.read_csv(path, sep=r"\s+", header=None)
-    df = df.dropna(axis=1, how="all")  # drop trailing empty columns from the raw file
-    df.columns = COLUMN_NAMES[: df.shape[1]]
-    return df
-
-
-def add_rul_column(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    For TRAINING data only: each engine runs until failure, so we can
-    compute Remaining Useful Life (RUL) directly as:
-        RUL = (max cycle for that engine) - (current cycle)
-    """
-    max_cycle_per_engine = df.groupby("engine_id")["cycle"].transform("max")
-    df["RUL"] = max_cycle_per_engine - df["cycle"]
-    return df
-
-
-def plot_engine_sensor(df: pd.DataFrame, engine_id: int, sensor: str):
+def plot_engine_sensor(df, engine_id: int, sensor: str):
     """Plot one sensor's readings over the life of a single engine."""
     engine_data = df[df["engine_id"] == engine_id]
     plt.figure(figsize=(8, 4))
@@ -61,8 +35,10 @@ def plot_engine_sensor(df: pd.DataFrame, engine_id: int, sensor: str):
 
 
 if __name__ == "__main__":
-    df = load_data(DATA_PATH)
-    df = add_rul_column(df)
+    df = utils.load_data(DATA_PATH)
+    # Exploration wants the true RUL trend, not the capped training target,
+    # so disable the cap here.
+    df = utils.add_rul_column(df, rul_cap=float("inf"))
 
     print("Shape of dataset:", df.shape)
     print("\nNumber of engines:", df["engine_id"].nunique())
